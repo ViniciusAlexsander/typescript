@@ -1,13 +1,19 @@
 {
   "type": "postgres",
   "port": 5432,
-  "host": "localhost",
-  "username": "docker",
-  "password": "ignite",
-  "database": "rentx",
-  "migrations": ["./src/database/migrations/*.ts"],
-  "entities": ["./src/modules/**/entities/*.ts"],
+  "host": "ec2-18-214-35-70.compute-1.amazonaws.com",
+  "username": "tavvciefgjdkbr",
+  "password": "2f6ec2bfe8a33e074e2f24566ecc64a38dcfc0f4eea44203f47c16c32fa69daf",
+  "database": "d33g76urc4o1dq",
+  "migrations": ["./dist/database/migrations/*.js"],
+  "entities": ["./dist/modules/**/entities/*.js"],
   "cli": {
-    "migrationsDir": "./src/database/migrations"
+    "migrationsDir": "./dist/database/migrations"
+  },
+  "ssl": true,
+  "extra": {
+    "ssl": {
+      "rejectUnauthorized": false
+    }
   }
 }

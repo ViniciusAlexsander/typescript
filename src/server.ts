@@ -14,7 +14,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use(router);
 
@@ -28,4 +28,4 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     .json({ message: `Internal server error - ${err.message}` });
 });
 
-app.listen(3333, () => console.log("Server is running"));
+app.listen(process.env.PORT || 3333, () => console.log("Server is running"));
