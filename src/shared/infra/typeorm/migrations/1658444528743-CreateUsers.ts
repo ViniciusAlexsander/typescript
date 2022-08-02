@@ -12,7 +12,7 @@ export class CreateUsers1658444528743 implements MigrationInterface {
           { name: "password", type: "varchar" },
           { name: "email", type: "varchar", isUnique: true },
           { name: "driver_license", type: "varchar", isUnique: true },
-          { name: "isAdmin", type: "boolean", default: false },
+          { name: "admin", type: "boolean", default: false },
           { name: "created_at", type: "timestamp", default: "now()" },
         ],
       })
