@@ -12,7 +12,8 @@ interface IPayload {
 
 interface ITokenResponse {
   token: string;
-  expiresIn: Date;
+  expiresInToken: Date;
+  refreshToken: string;
 }
 
 @injectable()
@@ -49,12 +50,29 @@ class RefreshTokenUseCase {
       throw new AppError("Refresh token expires, please create a new session");
     }
 
+    await this.usersTokensRepository.deleteById(userToken.id);
+
+    const newRefresh_token = sign({ email }, secretRefreshToken, {
+      subject: userId,
+      expiresIn: expiresInRefreshToken,
+    });
+
+    await this.usersTokensRepository.create({
+      expires_date: dayjs().add(expiresRefreshTokenDays, "days").toDate(),
+      refresh_token: newRefresh_token,
+      user_id: userId,
+    });
+
     const token = sign({}, secretToken, {
       subject: userId,
       expiresIn: expiresInToken,
     });
 
-    return { token, expiresIn: dayjs().add(15, "minute").toDate() };
+    return {
+      token,
+      expiresInToken: dayjs().add(15, "minute").toDate(),
+      refreshToken: newRefresh_token,
+    };
   }
 }
 
