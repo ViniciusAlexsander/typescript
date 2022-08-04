@@ -3,6 +3,9 @@ import { sign } from "jsonwebtoken";
 import { inject, injectable } from "tsyringe";
 import { IUsersRepository } from "@modules/accounts/repositories/IUsersRepository";
 import { AppError } from "@shared/errors/AppError";
+import { IUsersTokensRepository } from "@modules/accounts/repositories/IUsersTokensRepository";
+import auth from "@config/auth";
+import dayjs from "dayjs";
 
 interface IRequest {
   email: string;
@@ -15,17 +18,28 @@ interface IResponse {
     email: string;
   };
   token: string;
+  refreshToken: string;
 }
 
 @injectable()
 class AuthenticateUserUseCase {
   constructor(
     @inject("UsersRepository")
-    private usersRepository: IUsersRepository
+    private usersRepository: IUsersRepository,
+    @inject("UsersTokensRepository")
+    private usersTokensRepository: IUsersTokensRepository
   ) {}
 
   async execute({ email, password }: IRequest): Promise<IResponse> {
     const user = await this.usersRepository.findByEmail(email);
+
+    const {
+      expiresInToken,
+      secretToken,
+      secretRefreshToken,
+      expiresInRefreshToken,
+      expiresRefreshTokenDays,
+    } = auth;
 
     if (!user) {
       throw new AppError("Email or password incorrect");
@@ -37,9 +51,20 @@ class AuthenticateUserUseCase {
       throw new AppError("Email or password incorrect");
     }
 
-    const token = sign({}, "ecbfc0242ef3e3e820ce5be4da68ade3f82dbcf2", {
+    const token = sign({}, secretToken, {
       subject: user.id,
-      expiresIn: "1d",
+      expiresIn: expiresInToken,
+    });
+
+    const refresh_token = sign({ email }, secretRefreshToken, {
+      subject: user.id,
+      expiresIn: expiresInRefreshToken,
+    });
+
+    await this.usersTokensRepository.create({
+      expires_date: dayjs().add(expiresRefreshTokenDays, "days").toDate(),
+      refresh_token,
+      user_id: user.id,
     });
 
     const tokenReturn: IResponse = {
@@ -48,6 +73,7 @@ class AuthenticateUserUseCase {
         name: user.name,
         email: user.email,
       },
+      refreshToken: refresh_token,
     };
 
     return tokenReturn;
